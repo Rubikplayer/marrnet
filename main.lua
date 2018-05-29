@@ -3,7 +3,8 @@ require 'image'
 local t = require 'transforms'
 local ffi = require 'ffi'
 local Model = require 'model'
-local mat = require('fb.mattorch')
+--local mat = require('fb.mattorch')
+local npy4th = require 'npy4th' -- install from https://github.com/htwaijry/npy4th
 
 function file_exists(name)
 	local f = io.open(name,"r")
@@ -71,7 +72,8 @@ img[1] = image.scale(preprocess()(loadImage(opt.imgpath)), 256, 256)
 
 local model = Model()
 output = model:test(img)
-local savename = string.sub(opt.imgname, 1, findLast(opt.imgname, '%.')) .. 'mat'
+local savename = string.sub(opt.imgname, 1, findLast(opt.imgname, '%.')) .. 'npy'
 savepath = sys.concat(opt.www, savename)
-mat.save(savepath, {['voxels'] = output})
-
+npy4th.savenpy( savepath, output )
+print( "inference done!" )
+--mat.save(savepath, {['voxels'] = output})
