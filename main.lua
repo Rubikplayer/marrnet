@@ -50,30 +50,38 @@ function findLast(haystack, needle)
 	end
 end
 
+function basename(str)
+	local name = string.gsub(str, "(.*/)(.*)", "%2")
+	return name
+end
+
+--function basename( filepath )
+--	return string.match( filepath, "(.-)([^\\]-([^%.]+))$")
+--end
+
 cmd = torch.CmdLine()
-cmd:option('-imgname', '', 'The name of test image, which should be stored in "image" folder.')
+cmd:option('-imgpath', '', 'input image path')
+cmd:option('-outpath', '', 'output path, should have .npy extension')
 opt = cmd:parse(arg or {})
-opt.imgpath = paths.concat('image', opt.imgname)
 opt.imgDim = 256
-opt.www = 'output/'
 opt.meanstd = {
 	mean = { 0.485, 0.456, 0.406 },
 	std = { 0.229, 0.224, 0.225 },
 }
 
+print(string.format("input path  = %s", opt.imgpath))
+print(string.format("output path = %s", opt.outpath))
 assert(file_exists(opt.imgpath), "Test image: '" .. opt.imgpath .. "' does not exist.")
 
-if not file_exists(opt.www) then
-	os.execute("mkdir " .. opt.www)
-end
-
+-- input
 local img = torch.Tensor(1, 3, 256, 256)
 img[1] = image.scale(preprocess()(loadImage(opt.imgpath)), 256, 256)
 
+-- run model
 local model = Model()
 output = model:test(img)
-local savename = string.sub(opt.imgname, 1, findLast(opt.imgname, '%.')) .. 'npy'
-savepath = sys.concat(opt.www, savename)
-npy4th.savenpy( savepath, output )
+
+-- save
+npy4th.savenpy( opt.outpath, output )
 print( "inference done!" )
 --mat.save(savepath, {['voxels'] = output})
